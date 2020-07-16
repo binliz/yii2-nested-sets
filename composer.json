@@ -1,0 +1,27 @@
+{
+  "name": "binliz/yii2-nestedSets",
+  "description": "Package to use Nested Sets in Yii2",
+  "type": "yii2-extension",
+  "keywords": [
+    "yii2",
+    "extension",
+    "nestedset",
+    "tree"
+  ],
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "binliz",
+      "email": "toelastic@gmail.com",
+      "homepage": "binliz.org.ua"
+    }
+  ],
+  "require": {
+    "yiisoft/yii2": "~2.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "binliz\\NestedSets\\": ""
+    }
+  }
+}
