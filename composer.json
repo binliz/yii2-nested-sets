@@ -13,7 +13,7 @@
     {
       "name": "binliz",
       "email": "toelastic@gmail.com",
-      "homepage": "binliz.org.ua"
+      "homepage": "https://github.com/binliz/yii2-nestedSets"
     }
   ],
   "require": {
