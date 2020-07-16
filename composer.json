@@ -17,6 +17,7 @@
     }
   ],
   "require": {
+    "php": "^7.3",
     "yiisoft/yii2": "*"
   },
   "autoload": {
