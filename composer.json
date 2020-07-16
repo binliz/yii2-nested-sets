@@ -1,5 +1,5 @@
 {
-  "name": "binliz/yii2-nestedSets",
+  "name": "binliz/yii2-nested-sets",
   "description": "Package to use Nested Sets in Yii2",
   "type": "yii2-extension",
   "keywords": [
