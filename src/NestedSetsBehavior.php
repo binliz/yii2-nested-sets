@@ -231,7 +231,22 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
+    public function parentsAndSelf($depth = null)
+    {
+        $condition = [
+            'and',
+            ['<=', $this->leftAttribute, $this->owner->getAttribute($this->leftAttribute)],
+            ['>=', $this->rightAttribute, $this->owner->getAttribute($this->rightAttribute)],
+        ];
 
+        if ($depth !== null) {
+            $condition[] = ['>=', $this->depthAttribute, $this->owner->getAttribute($this->depthAttribute) - $depth];
+        }
+
+        $this->applyTreeAttributeCondition($condition);
+
+        return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
+    }
     /**
      * Gets the children of the node.
      *
@@ -256,6 +271,30 @@ class NestedSetsBehavior extends Behavior
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
 
+
+    /**
+     * Gets the children of the node.
+     *
+     * @param integer|null $depth the depth
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function childrenAndSelf($depth = null)
+    {
+        $condition = [
+            'and',
+            ['>=', $this->leftAttribute, $this->owner->getAttribute($this->leftAttribute)],
+            ['<=', $this->rightAttribute, $this->owner->getAttribute($this->rightAttribute)],
+        ];
+
+        if ($depth !== null) {
+            $condition[] = ['<=', $this->depthAttribute, $this->owner->getAttribute($this->depthAttribute) + $depth];
+        }
+
+        $this->applyTreeAttributeCondition($condition);
+
+        return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
+    }
     /**
      * Gets the leaves of the node.
      * @return \yii\db\ActiveQuery
