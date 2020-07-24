@@ -63,7 +63,7 @@ class NestedSetsBehavior extends Behavior
             ActiveRecord::EVENT_AFTER_DELETE => 'afterDelete',
         ];
     }
-
+    
     /**
      * Creates the root node if the active record is new or moves it
      * as the root node.
