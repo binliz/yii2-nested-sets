@@ -63,7 +63,7 @@ class NestedSetsBehavior extends Behavior
             ActiveRecord::EVENT_AFTER_DELETE => 'afterDelete',
         ];
     }
-    
+
     /**
      * Creates the root node if the active record is new or moves it
      * as the root node.
@@ -154,6 +154,7 @@ class NestedSetsBehavior extends Behavior
 
     /**
      * Deletes a node and its children.
+     *
      * @return integer|false the number of rows deleted or false if
      * the deletion is unsuccessful for some reason.
      * @throws \Exception
@@ -231,6 +232,7 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
+
     public function parentsAndSelf($depth = null)
     {
         $condition = [
@@ -247,6 +249,7 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
+
     /**
      * Gets the children of the node.
      *
@@ -271,7 +274,6 @@ class NestedSetsBehavior extends Behavior
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
 
-
     /**
      * Gets the children of the node.
      *
@@ -295,8 +297,10 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->find()->andWhere($condition)->addOrderBy([$this->leftAttribute => SORT_ASC]);
     }
+
     /**
      * Gets the leaves of the node.
+     *
      * @return \yii\db\ActiveQuery
      */
     public function leaves()
@@ -319,6 +323,7 @@ class NestedSetsBehavior extends Behavior
 
     /**
      * Gets the previous sibling of the node.
+     *
      * @return \yii\db\ActiveQuery
      */
     public function prev()
@@ -331,6 +336,7 @@ class NestedSetsBehavior extends Behavior
 
     /**
      * Gets the next sibling of the node.
+     *
      * @return \yii\db\ActiveQuery
      */
     public function next()
@@ -343,6 +349,7 @@ class NestedSetsBehavior extends Behavior
 
     /**
      * Determines whether the node is root.
+     *
      * @return boolean whether the node is root
      */
     public function isRoot()
@@ -371,6 +378,7 @@ class NestedSetsBehavior extends Behavior
 
     /**
      * Determines whether the node is leaf.
+     *
      * @return boolean whether the node is leaf
      */
     public function isLeaf()
@@ -476,9 +484,11 @@ class NestedSetsBehavior extends Behavior
         $this->node = null;
     }
 
-    private function getMaxRight(){
+    private function getMaxRight()
+    {
         return $this->owner::find()->max($this->rightAttribute);
     }
+
     /**
      * @throws Exception
      */
@@ -493,12 +503,11 @@ class NestedSetsBehavior extends Behavior
                 if ($this->treeAttribute === false) {
                     throw new Exception('Can not move a node as the root when "treeAttribute" is false.');
                 }
-                if($this->owner->{$this->leftAttribute} == 0){
-
+                if ($this->owner->{$this->leftAttribute} == 0) {
                     $attr = $this->getMaxRight();
 
-                    $this->owner->{$this->leftAttribute} = $attr+1;
-                    $this->owner->{$this->rightAttribute} = $attr+2;
+                    $this->owner->{$this->leftAttribute} = $attr + 1;
+                    $this->owner->{$this->rightAttribute} = $attr + 2;
                 }
                 /*                if ($this->owner->isRoot()) {
                                     throw new Exception('Can not move the root node as the root.');
@@ -568,7 +577,6 @@ class NestedSetsBehavior extends Behavior
         $leftAttribute = $db->quoteColumnName($this->leftAttribute);
         $rightAttribute = $db->quoteColumnName($this->rightAttribute);
         $depthAttribute = $db->quoteColumnName($this->depthAttribute);
-
 
         $this->owner->updateAll(
             [

@@ -102,7 +102,7 @@ trait NestedSetsTrait
         $query->execute();
     }
 
-    private function moveNode($nodeId, $parentId)
+    public function moveNode($nodeId, $parentId)
     {
         $node_info = $this->getNodeInfo($nodeId);
         $left_id = $node_info[$this->leftAttribute];
@@ -154,7 +154,7 @@ trait NestedSetsTrait
         $this->getDb()->createCommand($sql)->execute();
     }
 
-    private function setParent($parentId, $id)
+    public function setParent($parentId, $id)
     {
         if ($parentId) {
             $this->MoveNode($id, $parentId);
