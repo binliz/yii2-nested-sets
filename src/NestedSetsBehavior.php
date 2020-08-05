@@ -73,13 +73,27 @@ class NestedSetsBehavior extends Behavior
      *
      * @return boolean
      */
+    public function saveAsRoot($runValidation = true, $attributes = null)
+    {
+        $this->operation = self::OPERATION_MAKE_ROOT;
+
+        return $this->owner->save($runValidation, $attributes);
+    }
+    /**
+     * Creates the root node if the active record is new or moves it
+     * as the root node.
+     *
+     * @param boolean $runValidation
+     * @param array $attributes
+     *
+     * @return boolean
+     */
     public function makeRoot($runValidation = true, $attributes = null)
     {
         $this->operation = self::OPERATION_MAKE_ROOT;
 
         return $this->owner->save($runValidation, $attributes);
     }
-
     /**
      * Creates a node as the first child of the target node if the active
      * record is new or moves it as the first child of the target node.
