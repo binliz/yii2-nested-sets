@@ -2,6 +2,7 @@
 
 namespace binliz\NestedSets;
 
+use common\traits\ModelValidationErrorsTrait;
 use yii\db\ActiveRecord;
 use yii\db\Connection;
 
@@ -11,6 +12,7 @@ trait NestedSetsTrait
     private $nodeIdList = [];
     private $parentCriteria = "parent_id";
     private $globalParentNode = null;
+    private $companyId = null;
 
     public function startTreeGeneration(): self
     {
@@ -28,9 +30,6 @@ trait NestedSetsTrait
      */
     public function setNodes(array $nodes): self
     {
-        foreach ($nodes as $node) {
-            $this->nodeIdList[] = $node->id;
-        }
         $this->brokeTree();
 
         return $this;
@@ -47,9 +46,10 @@ trait NestedSetsTrait
                     $this->leftAttribute => ++$i,
                     $this->rightAttribute => ++$i,
                     $this->depthAttribute => 0,
+                    '_tree' => $this->globalParentNode,
                 ],
                 ['=', 'id', $node]
-            )->execute();
+            )->query();
         }
     }
 
@@ -77,6 +77,11 @@ trait NestedSetsTrait
     public function setOwner(ActiveRecord $owner): self
     {
         $this->globalParentNode = $owner->id;
+        $this->companyId = $owner->getAttribute('companyId');
+        $db = $this->getDb();
+        $nodes = $db->createCommand('SELECT id from ' . self::tableName() . ' where companyId=' . $this->companyId)
+            ->queryAll();
+        $this->nodeIdList = array_column($nodes, 'id');
 
         return $this;
     }
@@ -96,24 +101,25 @@ trait NestedSetsTrait
             $this->leftAttribute . ' = IF(' . $this->leftAttribute . '>' . $left . ',' .
             $this->leftAttribute . $this->sign($delta) . $delta .
             ',' . $this->leftAttribute . ') ' .
-            'WHERE ' . $this->rightAttribute . '>' . $left . ' AND id in(' .
-            implode(', ', $this->nodeIdList) . ')'
+            'WHERE ' . $this->rightAttribute . '>' . $left .
+            'AND companyId = ' . $this->companyId
         );
         $query->execute();
     }
 
-    public function moveNode($nodeId, $parentId)
+    public function movePermanentNode($nodeId, $parentId)
     {
         $node_info = $this->getNodeInfo($nodeId);
         $left_id = $node_info[$this->leftAttribute];
         $right_id = $node_info[$this->rightAttribute];
         $level = $node_info[$this->depthAttribute];
+        $parent_id = $node_info['parent_id'];
 
-        $node_info = $this->GetNodeInfo($parentId);
+        $node_parent_info = $this->getNodeInfo($parentId);
 
-        $left_idp = $node_info[$this->leftAttribute];
-        $right_idp = $node_info[$this->rightAttribute];
-        $levelp = $node_info[$this->depthAttribute];
+        $left_idp = $node_parent_info[$this->leftAttribute];
+        $right_idp = $node_parent_info[$this->rightAttribute];
+        $levelp = $node_parent_info[$this->depthAttribute];
 
         $sql = 'UPDATE ' . self::tableName() . ' SET ';
         if ($left_idp < $left_id && $right_idp > $right_id && $levelp < $level - 1) {
@@ -150,21 +156,23 @@ trait NestedSetsTrait
             $sql .= 'OR ' . $this->rightAttribute . ' BETWEEN ' . $left_id . ' AND ' . $right_idp . ')';
         }
 
-        $sql .= ' AND id in(' . implode(', ', $this->nodeIdList) . ')';
+        $sql .= 'AND companyId = ' . $node_parent_info['companyId'];
         $this->getDb()->createCommand($sql)->execute();
     }
 
     public function setParent($parentId, $id)
     {
         if ($parentId) {
-            $this->MoveNode($id, $parentId);
+            $this->movePermanentNode($id, $parentId);
             $sql = 'UPDATE ' . self::tableName() . ' SET ';
-            $sql .= 'parent_id =' . $parentId . ' ';
+            $sql .= '`parent_id`=' . $parentId . ' ';
             if ($this->globalParentNode) {
-                $sql .= ', ' . $this->treeAttribute . '=' . $this->globalParentNode . ' ';
+                $sql .= ', `' . $this->treeAttribute . '`=' . $this->globalParentNode . ' ';
             }
-            $sql .= 'WHERE id = ' . $id;
-            $this->getDb()->createCommand($sql)->execute();
+            $sql .= 'WHERE `id`=' . $id;
+            $command = $this->getDb()->createCommand($sql);
+                $command->execute();
+            //var_export($command->query());
         }
     }
 
@@ -226,15 +234,15 @@ trait NestedSetsTrait
         if ($this->parentCriteria !== 'parent_id') {
             $parentAttribute = ', ' . $this->parentCriteria;
         }
-        if (in_array($nodeId, $this->nodeIdList)) {
-            return $this->getDb()->createCommand(
-                'SELECT ' . $this->leftAttribute .
-                ', ' . $this->rightAttribute .
-                ', ' . $this->depthAttribute . ', parent_id ' . $parentAttribute . ' FROM '
-                . self::tableName() . ' WHERE id=:id'
-            )
-                ->bindValue(':id', $nodeId)->queryOne();
-        }
+
+        return $this->getDb()->createCommand(
+            'SELECT ' . $this->leftAttribute .
+            ', ' . $this->rightAttribute .
+            ', ' . $this->depthAttribute . ', id, parent_id, companyId ' . $parentAttribute . ' FROM '
+            . self::tableName() . ' WHERE id=:id'
+        )
+            ->bindValue(':id', $nodeId)
+            ->queryOne();
     }
 
 }
