@@ -17,19 +17,6 @@ trait NestedSetsTrait
     public function startTreeGeneration(): self
     {
         $this->treeBroken = true;
-
-        return $this;
-    }
-
-    /**
-     * This method take Array of ActiveRecord nodes to compute tree
-     *
-     * @param array $nodes
-     *
-     * @return $this
-     */
-    public function setNodes(array $nodes): self
-    {
         $this->brokeTree();
 
         return $this;
