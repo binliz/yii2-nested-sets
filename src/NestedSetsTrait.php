@@ -17,8 +17,6 @@ trait NestedSetsTrait
     public function startTreeGeneration(): self
     {
         $this->treeBroken = true;
-        $this->brokeTree();
-
         return $this;
     }
 
@@ -147,10 +145,12 @@ trait NestedSetsTrait
         $this->getDb()->createCommand($sql)->execute();
     }
 
-    public function setParent($parentId, $id)
+    public function setParent($parentId, $id, $movePermanent = true)
     {
         if ($parentId) {
-            $this->movePermanentNode($id, $parentId);
+            if($movePermanent) {
+                $this->movePermanentNode($id, $parentId);
+            }
             $sql = 'UPDATE ' . self::tableName() . ' SET ';
             $sql .= '`parent_id`=' . $parentId . ' ';
             if ($this->globalParentNode) {
@@ -183,6 +183,8 @@ trait NestedSetsTrait
 
     public function fixTree()
     {
+        $this->brokeTree();
+
         foreach ($this->nodeIdList as $item) {
             if ($this->globalParentNode) {
                 $idInfo = $this->getNodeInfo($item);
