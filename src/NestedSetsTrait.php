@@ -12,7 +12,7 @@ trait NestedSetsTrait
     private $nodeIdList = [];
     private $parentCriteria = "parent_id";
     private $globalParentNode = null;
-    private $companyId = null;
+    private $companyIdentify = null;
 
     public function startTreeGeneration(): self
     {
@@ -62,9 +62,9 @@ trait NestedSetsTrait
     public function setOwner(ActiveRecord $owner): self
     {
         $this->globalParentNode = $owner->id;
-        $this->companyId = $owner->getAttribute('companyId');
+        $this->companyIdentify = $owner->getAttribute('companyId');
         $db = $this->getDb();
-        $nodes = $db->createCommand('SELECT id from ' . self::tableName() . ' where companyId=' . $this->companyId)
+        $nodes = $db->createCommand('SELECT id from ' . self::tableName() . ' where companyId=' . $this->companyIdentify)
             ->queryAll();
         $this->nodeIdList = array_column($nodes, 'id');
 
@@ -87,7 +87,7 @@ trait NestedSetsTrait
             $this->leftAttribute . $this->sign($delta) . $delta .
             ',' . $this->leftAttribute . ') ' .
             'WHERE ' . $this->rightAttribute . '>' . $left .
-            'AND companyId = ' . $this->companyId
+            'AND companyId = ' . $this->companyIdentify
         );
         $query->execute();
     }
@@ -141,7 +141,7 @@ trait NestedSetsTrait
             $sql .= 'OR ' . $this->rightAttribute . ' BETWEEN ' . $left_id . ' AND ' . $right_idp . ')';
         }
 
-        $sql .= 'AND companyId = ' . $node_parent_info['companyId'];
+        $sql .= 'AND companyId = ' . $node_parent_info['companyIdentify'];
         $this->getDb()->createCommand($sql)->execute();
     }
 
