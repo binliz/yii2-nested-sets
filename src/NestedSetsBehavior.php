@@ -428,12 +428,24 @@ class NestedSetsBehavior extends Behavior
                 $this->beforeInsertNode($this->node->getAttribute($this->rightAttribute) + 1, 0);
                 break;
             default:
-                throw new NotSupportedException(
+                $this->setRightScenario();
+/*                throw new NotSupportedException(
                     'Method "' . get_class($this->owner) . '::insert" is not supported for inserting new nodes.'
-                );
+                );*/
         }
     }
-
+    protected function setRightScenario(){
+        $companyId = $this->owner->getAttribute('companyId');
+        $parent = $this->owner->getAttribute('managerId');
+        if(!$parent && ($companyId>0)){
+            $this->operation = self::OPERATION_MAKE_ROOT;
+            $this->beforeInsertRootNode();
+            return;
+        }
+        $this->operation = self::OPERATION_APPEND_TO;
+        $this->node = $this->owner::findOne(['id'=>$parent]);
+        $this->beforeInsertNode($this->node->getAttribute($this->rightAttribute), 1);
+    }
     /**
      * @throws Exception
      */
