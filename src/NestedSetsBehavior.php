@@ -2,6 +2,7 @@
 
 namespace binliz\NestedSets;
 
+use common\models\Employee;
 use yii\base\Behavior;
 use yii\base\NotSupportedException;
 use yii\db\ActiveRecord;
@@ -79,6 +80,7 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->save($runValidation, $attributes);
     }
+
     /**
      * Creates the root node if the active record is new or moves it
      * as the root node.
@@ -94,6 +96,7 @@ class NestedSetsBehavior extends Behavior
 
         return $this->owner->save($runValidation, $attributes);
     }
+
     /**
      * Creates a node as the first child of the target node if the active
      * record is new or moves it as the first child of the target node.
@@ -428,24 +431,42 @@ class NestedSetsBehavior extends Behavior
                 $this->beforeInsertNode($this->node->getAttribute($this->rightAttribute) + 1, 0);
                 break;
             default:
-                $this->setRightScenario();
-/*                throw new NotSupportedException(
-                    'Method "' . get_class($this->owner) . '::insert" is not supported for inserting new nodes.'
-                );*/
+                $this->setRightInsertScenario();
+            /*                throw new NotSupportedException(
+                                'Method "' . get_class($this->owner) . '::insert" is not supported for inserting new nodes.'
+                            );*/
         }
     }
-    protected function setRightScenario(){
+
+    protected function findOwner(int $companyId)
+    {
+        return $this->owner::find()->where(['companyId' => $companyId])->andWhere(['_lft' => 1])->one();
+    }
+
+    protected function setRightInsertScenario()
+    {
         $companyId = $this->owner->getAttribute('companyId');
         $parent = $this->owner->getAttribute('managerId');
-        if(!$parent && ($companyId>0)){
+        $owner = null;
+        if (!$parent && ($companyId > 0)) {
+            $owner = $this->findOwner($companyId);
+        }
+        if (!$owner) {
             $this->operation = self::OPERATION_MAKE_ROOT;
             $this->beforeInsertRootNode();
+            $this->owner->setAttribute('managerId',$this->owner->id);
             return;
         }
+        if ($parent) {
+            $owner = Employee::findOne(['id' => $parent]);
+        }
         $this->operation = self::OPERATION_APPEND_TO;
-        $this->node = $this->owner::findOne(['id'=>$parent]);
+        $this->node = $owner;
         $this->beforeInsertNode($this->node->getAttribute($this->rightAttribute), 1);
+        $this->owner->setAttribute('managerId',$this->node->id);
+        $this->owner->setAttribute('parent_id',$this->node->id);
     }
+
     /**
      * @throws Exception
      */
