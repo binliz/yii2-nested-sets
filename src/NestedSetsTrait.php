@@ -141,7 +141,7 @@ trait NestedSetsTrait
             $sql .= 'OR ' . $this->rightAttribute . ' BETWEEN ' . $left_id . ' AND ' . $right_idp . ')';
         }
 
-        $sql .= 'AND companyId = ' . $node_parent_info['companyIdentify'];
+        $sql .= 'AND companyId = ' . $node_parent_info['companyId'];
         $this->getDb()->createCommand($sql)->execute();
     }
 
