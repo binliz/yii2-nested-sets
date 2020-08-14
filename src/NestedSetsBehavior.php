@@ -389,6 +389,9 @@ class NestedSetsBehavior extends Behavior
         if ($result && $this->treeAttribute !== false) {
             $result = $this->owner->getAttribute($this->treeAttribute) === $node->getAttribute($this->treeAttribute);
         }
+        if($result ){
+            $result = $this->owner->getAttribute($this->depthAttribute) === ($node->getAttribute($this->depthAttribute)+1);
+        }
 
         return $result;
     }
@@ -466,7 +469,24 @@ class NestedSetsBehavior extends Behavior
         $this->owner->setAttribute('managerId',$this->node->id);
         $this->owner->setAttribute('parent_id',$this->node->id);
     }
-
+    protected function setRightUpdateScenario()
+    {
+        $companyId = $this->owner->getAttribute('companyId');
+        $parent = $this->owner->getAttribute('managerId');
+        $owner = null;
+        if (!$parent && ($companyId > 0)) {
+            $owner = $this->findOwner($companyId);
+        }
+        if ($parent) {
+            $owner = Employee::findOne(['id' => $parent]);
+        }
+        $this->node = $owner;
+        if (!$this->node->isChildOf($this->owner)) {
+            $this->operation = self::OPERATION_APPEND_TO;
+            $this->owner->setAttribute('managerId', $this->node->id);
+            $this->owner->setAttribute('parent_id', $this->node->id);
+        }
+    }
     /**
      * @throws Exception
      */
@@ -579,6 +599,10 @@ class NestedSetsBehavior extends Behavior
                 if ($this->node->isChildOf($this->owner)) {
                     throw new Exception('Can not move a node when the target node is child.');
                 }
+
+            default:
+                $this->setRightUpdateScenario();
+
         }
     }
 
