@@ -471,6 +471,10 @@ class NestedSetsBehavior extends Behavior
     }
     protected function setRightUpdateScenario()
     {
+        if($this->operation != null){
+            return;
+        }
+
         $companyId = $this->owner->getAttribute('companyId');
         $parent = $this->owner->getAttribute('managerId');
         $owner = null;
@@ -481,7 +485,7 @@ class NestedSetsBehavior extends Behavior
             $owner = Employee::findOne(['id' => $parent]);
         }
         $this->node = $owner;
-        if (!$this->node->isChildOf($this->owner)) {
+        if (!$this->node->isChildOf($this->owner) && ($this->owner->id != $this->node->id)) {
             $this->operation = self::OPERATION_APPEND_TO;
             $this->owner->setAttribute('managerId', $this->node->id);
             $this->owner->setAttribute('parent_id', $this->node->id);
